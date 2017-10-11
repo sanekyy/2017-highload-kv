@@ -6,7 +6,6 @@ plugins {
     application
 }
 
-
 repositories {
     jcenter()
 }
