@@ -1,4 +1,4 @@
-package ru.mail.polis.sanekyy;
+package ru.mail.polis.sanekyy.data;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +14,7 @@ public class MyFileDao implements MyDAO {
     }
 
     @NotNull
-    private File getFile(@NotNull final String key){
+    private File getFile(@NotNull final String key) {
         return new File(dir, key);
     }
 
@@ -24,7 +24,7 @@ public class MyFileDao implements MyDAO {
     public byte[] get(@NotNull String key) throws NoSuchElementException, IllegalArgumentException, IOException {
         final File file = getFile(key);
 
-        if(!file.exists()){
+        if (!file.exists()) {
             throw new NoSuchElementException("File doesn't exist");
         }
 
@@ -43,8 +43,8 @@ public class MyFileDao implements MyDAO {
             @NotNull final String key,
             @NotNull final byte[] value
     ) throws IllegalArgumentException, IOException {
-        try(OutputStream os = new FileOutputStream(getFile(key))){
-           os.write(value);
+        try (OutputStream os = new FileOutputStream(getFile(key))) {
+            os.write(value);
         }
     }
 
@@ -52,7 +52,7 @@ public class MyFileDao implements MyDAO {
     public void delete(@NotNull final String key) throws IllegalArgumentException, IOException {
         try {
             getFile(key).delete();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -13,6 +13,10 @@ repositories {
 dependencies {
     // Annotations for better code documentation
     compile("com.intellij:annotations:12.0")
+    compile("org.projectlombok:lombok:1.16.18")
+
+    compile("com.squareup.retrofit2:retrofit:2.3.0")
+
 
     // JUnit test framework
     testCompile("junit:junit:4.12")

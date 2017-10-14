@@ -22,8 +22,8 @@ package ru.mail.polis;
  * <p>
  * A cluster of nodes <b>MUST</b> distribute data between nodes and provide consistent results while a quorum of nodes is alive.
  *
- * @link https://github.com/polis-mail-ru/2017-highload-kv/blob/master/README.md
  * @author Vadim Tsesko <mail@incubos.org>
+ * @link https://github.com/polis-mail-ru/2017-highload-kv/blob/master/README.md
  */
 public interface KVService {
     /**

@@ -83,6 +83,7 @@ public class TwoNodeTest extends ClusterTestBase {
         // Insert
         assertEquals(201, upsert(0, key, value, 1).getStatusLine().getStatusCode());
 
+
         // Check
         final HttpResponse response = get(1, key, 2);
         assertEquals(200, response.getStatusLine().getStatusCode());
