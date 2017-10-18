@@ -8,10 +8,9 @@ public class v0_checkMissedCalls extends BaseHandler {
 
     @NotNull
     private final HttpHandler handler = httpExchange -> {
-        String hostname = extractHostname(httpExchange.getRequestURI().getQuery());
-        int port = extractPort(httpExchange.getRequestURI().getQuery());
+        String addr = extractAddr(httpExchange.getRequestURI().getQuery());
 
-        service.getTopologyManager().getMissedCalls().checkMissedRequests(hostname, port);
+        service.getBroadcastManager().getMissedCalls().checkMissedRequests(addr);
         sendResponse(httpExchange, Code.OK, Body.STATUS_ONLINE);
     };
 

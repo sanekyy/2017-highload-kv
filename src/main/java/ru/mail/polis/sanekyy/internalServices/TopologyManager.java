@@ -1,155 +1,42 @@
 package ru.mail.polis.sanekyy.internalServices;
 
-import lombok.Getter;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import ru.mail.polis.sanekyy.MyService.Mode;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+public class TopologyManager implements ITopologyManager {
 
-@Getter
-public class TopologyManager {
-
-    private final int port;
     @NotNull
-    private final Set<String> topology;
-    @NotNull
-    private final List<NodeService> nodeServices;
-    @NotNull
-    private final MissedCalls missedCalls;
-    @NotNull
-    private final Mode mode;
-    @NotNull
-    private String hostName;
+    private final List<String> topology;
 
-    public TopologyManager(final int port, @NotNull final Mode mode, @NotNull final Set<String> topology) {
-        this.port = port;
-        this.topology = topology;
-        this.mode = mode;
-
-        nodeServices = new ArrayList<>();
-        missedCalls = new MissedCalls(this);
-
-
-        boolean isHostNameFound = false;
-
-        for (String addr : topology) {
-            String[] args = addr.split("[:/]");
-
-            if (args[4].equals(String.valueOf(port))) {
-                if (!isHostNameFound) {
-                    hostName = args[3];
-                    isHostNameFound = true;
-                }
-            } else {
-                Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl(addr + "/")
-                        .build();
-                nodeServices.add(retrofit.create(NodeService.class));
-            }
-        }
-
-        if (!isHostNameFound) {
-            hostName = "localhost";
-        }
+    public TopologyManager(@NotNull final Set<String> topology) {
+        this.topology = new ArrayList<>(topology);
+        this.topology.sort(String::compareTo);
     }
 
+    @NotNull
+    @Override
+    public Set<String> getAddrsForId(@NotNull final String id, final int nodesCount) {
+        Set<String> result = new HashSet<>();
+        int startNodeIndex = id.charAt(0) % topology.size();
 
-    public void getEntity(@NotNull final String id, @NotNull final Callback<ResponseBody> callBack) {
-        if (mode == Mode.sync) {
-            nodeServices.forEach(service -> {
-                Call<ResponseBody> call = service.getEntity(id);
-                executeSyncCall(call, callBack);
-            });
-        } else if (mode == Mode.async) {
-            nodeServices.forEach(service -> service.getEntity(id).enqueue(callBack));
-        } else {
-            System.out.println("Unknown mode");
+        for (int i = 0; i < nodesCount; i++) {
+            result.add(topology.get((startNodeIndex + i) % topology.size()));
         }
+
+        return result;
     }
 
-    public void deleteEntity(@NotNull final String id, @NotNull final Callback<ResponseBody> callBack) {
-        if (mode == Mode.sync) {
-            nodeServices.forEach(service -> {
-                Call<ResponseBody> call = service.deleteEntity(id);
-                executeSyncCall(call, callBack);
-            });
-        } else if (mode == Mode.async) {
-            nodeServices.forEach(service -> service.deleteEntity(id).enqueue(callBack));
-        } else {
-            System.out.println("Unknown mode");
-        }
+    @Override
+    public int getNodesCount() {
+        return topology.size();
     }
 
-    public void putEntity(@NotNull final String id, @NotNull final byte[] body, @NotNull final Callback<ResponseBody> callBack) {
-        RequestBody requestBody = RequestBody.create(MediaType.parse("text/plain"), body);
-
-        if (mode == Mode.sync) {
-            nodeServices.forEach(service -> {
-                Callback<ResponseBody> callbackWrapper = new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                        callBack.onResponse(call, response);
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                        missedCalls.addMissedCall(service.putEntity(id, requestBody));
-                        callBack.onFailure(call, t);
-                    }
-                };
-
-                Call<ResponseBody> call = service.putEntity(id, requestBody);
-                executeSyncCall(call, callbackWrapper);
-            });
-        } else if (mode == Mode.async) {
-            nodeServices.forEach(service -> service.putEntity(id, requestBody).enqueue(callBack));
-        } else {
-            System.out.println("Unknown mode");
-        }
-    }
-
-    public void checkMissedCalls() {
-        Callback<ResponseBody> callBack = new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
-                System.out.println(hostName + ":" + port + " missedChecked");
-            }
-
-            @Override
-            public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                //t.printStackTrace();
-            }
-        };
-
-        if (mode == Mode.sync) {
-            nodeServices.forEach(service -> {
-                Call<ResponseBody> call = service.checkMissedCall(hostName, port);
-                executeSyncCall(call, callBack);
-            });
-        } else if (mode == Mode.async) {
-            nodeServices.forEach(service -> service.checkMissedCall(hostName, port).enqueue(callBack));
-        } else {
-            System.out.println("Unknown mode");
-        }
-    }
-
-    private void executeSyncCall(@NotNull final Call<ResponseBody> call, @NotNull final Callback<ResponseBody> callBack) {
-        try {
-            Response<ResponseBody> response = call.execute();
-            callBack.onResponse(call, response);
-        } catch (IOException e) {
-            callBack.onFailure(call, e);
-        }
+    @Override
+    public int getQuorum() {
+        return topology.size() / 2 + 1;
     }
 }

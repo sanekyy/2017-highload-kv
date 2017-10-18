@@ -12,6 +12,7 @@ import ru.mail.polis.sanekyy.MyService;
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,9 +42,10 @@ public class v0_entity extends BaseHandler {
 
     private void handleGet(@NotNull final HttpExchange httpExchange) throws IOException {
         final String id = extractId(httpExchange.getRequestURI().getQuery());
-        final int replicas = extractReplicas(httpExchange.getRequestURI().getQuery());
+        final int ack = extractAck(httpExchange.getRequestURI().getQuery());
+        final int from = extractFrom(httpExchange.getRequestURI().getQuery());
 
-        if (replicas > service.getNodesCount() || replicas < 1) {
+        if (!(ack <= from && from <= service.getTopologyManager().getNodesCount() && ack >= 1)) {
             sendResponse(httpExchange, Code.BAD_REQUEST, Body.BAD_REQUEST);
             return;
         }
@@ -51,11 +53,15 @@ public class v0_entity extends BaseHandler {
         if (httpExchange.getRequestHeaders().containsKey(Header.INTERNAL_CALL)) {
             handleInternalGet(httpExchange, id);
         } else {
-            handleExternalGet(httpExchange, id, replicas);
+            handleExternalGet(httpExchange, id, ack, from);
         }
     }
 
-    private void handleExternalGet(@NotNull final HttpExchange httpExchange, @NotNull final String id, final int replicas) throws IOException {
+    private void handleExternalGet(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id,
+            final int ack,
+            final int from) throws IOException {
         AtomicInteger goodAnswer = new AtomicInteger(0),
                 badAnswer = new AtomicInteger(0),
                 errorAnswer = new AtomicInteger(0);
@@ -63,27 +69,29 @@ public class v0_entity extends BaseHandler {
 
         List<byte[]> values = new CopyOnWriteArrayList<>();
 
+        Set<String> addrsToGet = service.getTopologyManager().getAddrsForId(id, from);
 
-        try {
-            values.add(service.getDao().get(id));
-            goodAnswer.incrementAndGet();
-        } catch (NoSuchElementException e) {
-            badAnswer.incrementAndGet();
-        } catch (Exception e) {
-            errorAnswer.incrementAndGet();
-            e.printStackTrace();
-        }
-
-        if (replicas == 1) {
-            if (goodAnswer.get() == 1) {
-                sendResponse(httpExchange, Code.OK, values.get(0));
-            } else {
-                sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
+        if (addrsToGet.remove(service.getAddr())) {
+            try {
+                values.add(service.getDao().get(id));
+                goodAnswer.incrementAndGet();
+            } catch (NoSuchElementException e) {
+                badAnswer.incrementAndGet();
+            } catch (Exception e) {
+                errorAnswer.incrementAndGet();
             }
-            return;
+
+            if (from == 1) {
+                if (goodAnswer.get() == 1) {
+                    sendResponse(httpExchange, Code.OK, values.get(0));
+                } else {
+                    sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
+                }
+                return;
+            }
         }
 
-        service.getTopologyManager().getEntity(id, new Callback<ResponseBody>() {
+        service.getBroadcastManager().getEntity(addrsToGet, id, new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
                 switch (response.code()) {
@@ -94,8 +102,8 @@ public class v0_entity extends BaseHandler {
                         goodAnswer.incrementAndGet();
                         try {
                             values.add(response.body().bytes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (Exception ignored){
+
                         }
                         break;
                     default:
@@ -103,10 +111,11 @@ public class v0_entity extends BaseHandler {
                         System.out.println(String.valueOf(call.request().url()) + " wtf?");
                 }
 
-                if (goodAnswer.get() >= replicas) {
-                    sendResponse(httpExchange, Code.OK, values.get(0));
+                if (goodAnswer.get() + badAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
+                    if (goodAnswer.get() >= ack) {
+                        sendResponse(httpExchange, Code.OK, values.get(0));
 
-                    // for sendResponse all values
+                        // for sendResponse all values
                     /*int totalLength = values.stream().map(bytes -> bytes.length).reduce((a,b) -> a + b).get();
                     byte[] totalBytes = new byte[totalLength];
                     int destPos = 0;
@@ -117,10 +126,11 @@ public class v0_entity extends BaseHandler {
                     }
 
                     sendResponse(Code.OK, totalBytes);*/
-                } else if (badAnswer.get() >= replicas) {
-                    sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
-                } else if (badAnswer.get() + goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
-                    sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                    } else if (badAnswer.get() >= ack) {
+                        sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
+                    } else {
+                        sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                    }
                 }
             }
 
@@ -128,7 +138,7 @@ public class v0_entity extends BaseHandler {
             public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
                 errorAnswer.incrementAndGet();
                 //t.printStackTrace();
-                if (goodAnswer.get() >= replicas) {
+                if (goodAnswer.get() >= ack) {
                     sendResponse(httpExchange, Code.OK, values.get(0));
 
                     // for sendResponse all values
@@ -142,25 +152,28 @@ public class v0_entity extends BaseHandler {
                     }
 
                     sendResponse(Code.OK, totalBytes);*/
-                } else if (badAnswer.get() >= replicas) {
+                } else if (badAnswer.get() >= ack) {
                     sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
-                } else if (badAnswer.get() + goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
+                } else if (badAnswer.get() + goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
                     sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
                 }
             }
         });
     }
 
-    private void handleInternalGet(@NotNull final HttpExchange httpExchange, @NotNull final String id) throws IOException {
+    private void handleInternalGet(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id) throws IOException {
         final byte[] getValue = service.getDao().get(id);
         sendResponse(httpExchange, Code.OK, getValue);
     }
 
     private void handleDelete(@NotNull final HttpExchange httpExchange) throws IOException {
         final String id = extractId(httpExchange.getRequestURI().getQuery());
-        final int replicas = extractReplicas(httpExchange.getRequestURI().getQuery());
+        final int ack = extractAck(httpExchange.getRequestURI().getQuery());
+        final int from = extractFrom(httpExchange.getRequestURI().getQuery());
 
-        if (replicas > service.getNodesCount() || replicas < 1) {
+        if (!(ack <= from && from <= service.getTopologyManager().getNodesCount() && ack >= 1)) {
             sendResponse(httpExchange, Code.BAD_REQUEST, Body.BAD_REQUEST);
             return;
         }
@@ -168,23 +181,31 @@ public class v0_entity extends BaseHandler {
         if (httpExchange.getRequestHeaders().containsKey(Header.INTERNAL_CALL)) {
             handleInternalDelete(httpExchange, id);
         } else {
-            handleExternalDelete(httpExchange, id, replicas);
+            handleExternalDelete(httpExchange, id, ack, from);
         }
     }
 
-    private void handleExternalDelete(@NotNull final HttpExchange httpExchange, @NotNull final String id, final int replicas) throws IOException {
+    private void handleExternalDelete(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id,
+            final int ack,
+            final int from) throws IOException {
         AtomicInteger goodAnswer = new AtomicInteger(0),
                 errorAnswer = new AtomicInteger(0);
 
-        service.getDao().delete(id);
-        goodAnswer.incrementAndGet();
+        Set<String> addrsToRemove = service.getTopologyManager().getAddrsForId(id, from);
 
-        if (service.getNodesCount() == 1) {
-            sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
-            return;
+        if (addrsToRemove.remove(service.getAddr())) {
+            service.getDao().delete(id);
+            goodAnswer.incrementAndGet();
+
+            if (from == 1) {
+                sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
+                return;
+            }
         }
 
-        service.getTopologyManager().deleteEntity(id, new Callback<ResponseBody>() {
+        service.getBroadcastManager().deleteEntity(addrsToRemove, id, new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NotNull final Call<ResponseBody> call, @NotNull final Response<ResponseBody> response) {
                 switch (response.code()) {
@@ -196,10 +217,12 @@ public class v0_entity extends BaseHandler {
                         System.out.println(String.valueOf(call.request().url()) + " wtf?");
                 }
 
-                if (goodAnswer.get() >= replicas) {
-                    sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
-                } else if (goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
-                    sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
+                    if (goodAnswer.get() >= ack) {
+                        sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
+                    } else {
+                        sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                    }
                 }
             }
 
@@ -207,27 +230,30 @@ public class v0_entity extends BaseHandler {
             public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
                 errorAnswer.incrementAndGet();
                 //t.printStackTrace();
-                if (goodAnswer.get() >= replicas) {
+                if (goodAnswer.get() >= ack) {
                     sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
-                } else if (goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
+                } else if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
                     sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
                 }
             }
         });
     }
 
-    private void handleInternalDelete(@NotNull final HttpExchange httpExchange, @NotNull final String id) throws IOException {
+    private void handleInternalDelete(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id) throws IOException {
         service.getDao().delete(id);
         sendResponse(httpExchange, Code.ACCEPTED, Body.ACCEPTED);
     }
 
     private void handlePut(@NotNull final HttpExchange httpExchange) throws IOException {
         final String id = extractId(httpExchange.getRequestURI().getQuery());
-        final int replicas = extractReplicas(httpExchange.getRequestURI().getQuery());
+        final int ack = extractAck(httpExchange.getRequestURI().getQuery());
+        final int from = extractFrom(httpExchange.getRequestURI().getQuery());
 
         final byte[] value = extractValue(httpExchange);
 
-        if (replicas > service.getNodesCount() || replicas < 1) {
+        if (!(ack <= from && from <= service.getTopologyManager().getNodesCount() && ack >= 1)) {
             sendResponse(httpExchange, Code.BAD_REQUEST, Body.BAD_REQUEST);
             return;
         }
@@ -235,58 +261,61 @@ public class v0_entity extends BaseHandler {
         if (httpExchange.getRequestHeaders().containsKey(Header.INTERNAL_CALL)) {
             handleInternalPut(httpExchange, id, value);
         } else {
-            handleExternalPut(httpExchange, id, value, replicas);
+            handleExternalPut(httpExchange, id, value, ack, from);
         }
     }
 
-    private void handleExternalPut(@NotNull final HttpExchange httpExchange, @NotNull final String id, @NotNull final byte[] value, final int replicas) {
+    private void handleExternalPut(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id,
+            @NotNull final byte[] value,
+            final int ack,
+            final int from) {
         AtomicInteger goodAnswer = new AtomicInteger(0),
                 errorAnswer = new AtomicInteger(0);
 
-        try {
-            service.getDao().upsert(id, value);
-            goodAnswer.incrementAndGet();
-        } catch (Exception e) {
-            errorAnswer.incrementAndGet();
-            e.printStackTrace();
-        }
 
-        // Если клиент хотел надёжность в 1, то после первой успешной записи сразу же можно сообщить что всё ок
-        // ОДНАКО, во время тестирования в методе overlapRead производится запись с надёжностью 1,
-        // а потом счивание с 2-х, но к тому времени вторая нода ещё не записала себе значение,
-        // в следствии чего тест не проходит, поэтому пришлось закомментировать этот блок.
-        // Ну или пофиксить это тем, что сделать все вызовы синхронными
+        Set<String> addrsToPut = service.getTopologyManager().getAddrsForId(id, from);
 
-        /*if (replicas == 1 && goodAnswer.get() == 1) {
-            sendResponse(httpExchange, Code.CREATED, Body.CREATED);
-        }*/
-
-        if (service.getNodesCount() == 1) {
-            if (goodAnswer.get() == 1) {
-                sendResponse(httpExchange, Code.CREATED, Body.CREATED);
-            } else {
-                sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+        if (addrsToPut.remove(service.getAddr())) {
+            try {
+                service.getDao().upsert(id, value);
+                goodAnswer.incrementAndGet();
+            } catch (Exception e) {
+                errorAnswer.incrementAndGet();
+                //e.printStackTrace();
             }
-            return;
+
+            if (from == 1) {
+                if (goodAnswer.get() == 1) {
+                    sendResponse(httpExchange, Code.CREATED, Body.CREATED);
+                } else {
+                    sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                }
+                return;
+            }
+
         }
 
-
-        service.getTopologyManager().putEntity(id, value, new Callback<ResponseBody>() {
+        service.getBroadcastManager().putEntity(addrsToPut, id, value, new Callback<ResponseBody>() {
             @Override
             public void onResponse(@NotNull Call<ResponseBody> call, @NotNull Response<ResponseBody> response) {
                 switch (response.code()) {
                     case Code.CREATED:
                         goodAnswer.incrementAndGet();
+                        //System.out.println("puted");
                         break;
                     default:
                         errorAnswer.incrementAndGet();
                         System.out.println(String.valueOf(call.request().url()) + " wtf?");
                 }
 
-                if (goodAnswer.get() >= replicas) {
-                    sendResponse(httpExchange, Code.CREATED, Body.CREATED);
-                } else if (goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
-                    sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
+                    if (goodAnswer.get() >= ack) {
+                        sendResponse(httpExchange, Code.CREATED, Body.CREATED);
+                    } else {
+                        sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
+                    }
                 }
             }
 
@@ -295,16 +324,19 @@ public class v0_entity extends BaseHandler {
                 errorAnswer.incrementAndGet();
                 //t.printStackTrace();
 
-                if (goodAnswer.get() >= replicas) {
+                if (goodAnswer.get() >= ack) {
                     sendResponse(httpExchange, Code.CREATED, Body.CREATED);
-                } else if (goodAnswer.get() + errorAnswer.get() == service.getNodesCount()) {
+                } else if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
                     sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
                 }
             }
         });
     }
 
-    private void handleInternalPut(@NotNull final HttpExchange httpExchange, @NotNull final String id, @NotNull byte[] value) throws IOException {
+    private void handleInternalPut(
+            @NotNull final HttpExchange httpExchange,
+            @NotNull final String id,
+            @NotNull byte[] value) throws IOException {
         service.getDao().upsert(id, value);
         sendResponse(httpExchange, Code.CREATED, Body.CREATED);
     }

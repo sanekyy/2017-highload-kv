@@ -12,12 +12,12 @@ public class BaseHandler implements HttpHandler {
 
     private static final String PREFIX_ID = "id=";
     private static final String PREFIX_REPLICAS = "replicas=";
-    private static final String PREFIX_HOSTNAME = "hostname=";
-    private static final String PREFIX_PORT = "port=";
+    private static final String PREFIX_ADDR = "addr=";
     @NotNull
     final MyService service;
     @NotNull
     HttpHandler handler;
+
     BaseHandler(@NotNull MyService service) {
         this.service = service;
     }
@@ -40,7 +40,11 @@ public class BaseHandler implements HttpHandler {
         }
     }
 
-    void sendResponse(@NotNull final HttpExchange httpExchange, final int code, @NotNull final byte[] body) {
+    void sendResponse(
+            @NotNull final HttpExchange httpExchange,
+            final int code,
+            @NotNull final byte[] body) {
+
         try {
             httpExchange.sendResponseHeaders(code, body.length);
             httpExchange.getResponseBody().write(body);
@@ -84,7 +88,7 @@ public class BaseHandler implements HttpHandler {
         return value;
     }
 
-    int extractReplicas(String query) {
+    int extractAck(String query) {
         String[] subqueries = query.split("&");
 
         for (String subquery : subqueries) {
@@ -92,38 +96,51 @@ public class BaseHandler implements HttpHandler {
                 if (query.length() == PREFIX_REPLICAS.length()) {
                     throw new IllegalArgumentException();
                 }
-                return Integer.valueOf(subquery.substring(PREFIX_REPLICAS.length()));
+
+                String[] ackAndFrom = subquery.substring(PREFIX_REPLICAS.length()).split("/");
+
+                if (ackAndFrom.length != 2) {
+                    throw new IllegalArgumentException();
+                } else {
+                    return Integer.valueOf(ackAndFrom[0]);
+                }
             }
         }
 
-        return service.getQuorum();
+        return service.getTopologyManager().getQuorum();
+    }
+
+    int extractFrom(String query) {
+        String[] subqueries = query.split("&");
+
+        for (String subquery : subqueries) {
+            if (subquery.startsWith(PREFIX_REPLICAS)) {
+                if (query.length() == PREFIX_REPLICAS.length()) {
+                    throw new IllegalArgumentException();
+                }
+                String[] ackAndFrom = subquery.substring(PREFIX_REPLICAS.length()).split("/");
+
+                if (ackAndFrom.length != 2) {
+                    throw new IllegalArgumentException();
+                } else {
+                    return Integer.valueOf(ackAndFrom[1]);
+                }
+            }
+        }
+
+        return service.getTopologyManager().getNodesCount();
     }
 
     @NotNull
-    String extractHostname(String query) {
+    String extractAddr(String query) {
         String[] subqueries = query.split("&");
 
         for (String subquery : subqueries) {
-            if (subquery.startsWith(PREFIX_HOSTNAME)) {
-                if (query.length() == PREFIX_HOSTNAME.length()) {
+            if (subquery.startsWith(PREFIX_ADDR)) {
+                if (query.length() == PREFIX_ADDR.length()) {
                     throw new IllegalArgumentException();
                 }
-                return subquery.substring(PREFIX_HOSTNAME.length());
-            }
-        }
-
-        throw new IllegalArgumentException();
-    }
-
-    int extractPort(String query) {
-        String[] subqueries = query.split("&");
-
-        for (String subquery : subqueries) {
-            if (subquery.startsWith(PREFIX_PORT)) {
-                if (query.length() == PREFIX_PORT.length()) {
-                    throw new IllegalArgumentException();
-                }
-                return Integer.valueOf(subquery.substring(PREFIX_PORT.length()));
+                return subquery.substring(PREFIX_ADDR.length());
             }
         }
 

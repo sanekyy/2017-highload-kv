@@ -4,42 +4,52 @@ import com.sun.net.httpserver.HttpServer;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import ru.mail.polis.KVService;
+import ru.mail.polis.sanekyy.Utils.StringUtils;
 import ru.mail.polis.sanekyy.data.MyDAO;
 import ru.mail.polis.sanekyy.handlers.v0_checkMissedCalls;
 import ru.mail.polis.sanekyy.handlers.v0_entity;
 import ru.mail.polis.sanekyy.handlers.v0_status;
+import ru.mail.polis.sanekyy.internalServices.BroadcastManager;
+import ru.mail.polis.sanekyy.internalServices.ITopologyManager;
 import ru.mail.polis.sanekyy.internalServices.TopologyManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
 public class MyService implements KVService {
 
-    private final Mode mode = Mode.sync;
     @NotNull
     private final HttpServer server;
     @NotNull
     private final MyDAO dao;
-    private final int quorum;
-    private final int nodesCount;
     @NotNull
-    private final TopologyManager topologyManager;
+    private final BroadcastManager broadcastManager;
+    @NotNull
+    private final String addr;
+    @NotNull
+    private final ITopologyManager topologyManager;
 
     public MyService(
             final int port,
             @NotNull final MyDAO dao,
             @NotNull final Set<String> topology) throws IOException {
 
-        this.dao = dao;
-        quorum = topology.size() / 2 + 1;
-        nodesCount = topology.size();
 
-        topologyManager = new TopologyManager(port, mode, topology);
+        this.dao = dao;
+        addr = getAddrFromTopologyForPort(port, topology);
+
+        topologyManager = new TopologyManager(topology);
+
+
+        Set<String> myTopology = new HashSet<>(topology);
+        myTopology.remove(addr);
+        broadcastManager = new BroadcastManager(myTopology);
 
         this.server = HttpServer.create(
-                new InetSocketAddress(topologyManager.getHostName(), topologyManager.getPort()),
+                new InetSocketAddress(StringUtils.getHostnameFromAddr(addr), port),
                 0
         );
 
@@ -49,7 +59,7 @@ public class MyService implements KVService {
         );
 
         this.server.createContext(
-                "/v0/entity", //
+                "/v0/entity",
                 new v0_entity(this)
         );
 
@@ -62,12 +72,27 @@ public class MyService implements KVService {
     @Override
     public void start() {
         this.server.start();
-        topologyManager.checkMissedCalls();
+        broadcastManager.checkMissedCalls(addr);
     }
 
     @Override
     public void stop() {
         this.server.stop(0);
+    }
+
+    @NotNull
+    private String getAddrFromTopologyForPort(
+            final int port,
+            Set<String> topology) throws IllegalArgumentException {
+        for (String addr : topology) {
+            String[] args = addr.split("[:/]");
+
+            if (args[4].equals(String.valueOf(port))) {
+                return addr;
+            }
+        }
+
+        throw new IllegalArgumentException("Bad topology");
     }
 
     public enum Mode {
