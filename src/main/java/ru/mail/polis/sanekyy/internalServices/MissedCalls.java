@@ -6,11 +6,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import ru.mail.polis.sanekyy.MyService.Mode;
-import ru.mail.polis.sanekyy.Utils.Config;
+import ru.mail.polis.sanekyy.utils.Config;
 
 import java.io.IOException;
 import java.util.*;
 
+
+/**
+ * Storage of missed call wich don't delivered to some node, because it had downtime or some different problem.
+ * When node will rise, it will send request to all other nodes, and check do they have missed call for it.
+ */
 public class MissedCalls {
 
     @NotNull

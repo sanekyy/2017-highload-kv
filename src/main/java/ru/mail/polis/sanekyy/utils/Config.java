@@ -1,4 +1,4 @@
-package ru.mail.polis.sanekyy.Utils;
+package ru.mail.polis.sanekyy.utils;
 
 
 import ru.mail.polis.sanekyy.MyService.Mode;

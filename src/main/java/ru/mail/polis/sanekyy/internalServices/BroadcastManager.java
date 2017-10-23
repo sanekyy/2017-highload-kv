@@ -10,7 +10,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import ru.mail.polis.sanekyy.MyService.Mode;
-import ru.mail.polis.sanekyy.Utils.Config;
+import ru.mail.polis.sanekyy.utils.Config;
 
 import java.io.IOException;
 import java.util.HashMap;

@@ -67,7 +67,6 @@ public class BaseHandler implements HttpHandler {
                 return subquery.substring(PREFIX_ID.length());
             }
         }
-
         throw new IllegalArgumentException("Shitty string");
     }
 

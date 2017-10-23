@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpServer;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import ru.mail.polis.KVService;
-import ru.mail.polis.sanekyy.Utils.StringUtils;
 import ru.mail.polis.sanekyy.data.MyDAO;
 import ru.mail.polis.sanekyy.handlers.v0_checkMissedCalls;
 import ru.mail.polis.sanekyy.handlers.v0_entity;
@@ -12,6 +11,7 @@ import ru.mail.polis.sanekyy.handlers.v0_status;
 import ru.mail.polis.sanekyy.internalServices.BroadcastManager;
 import ru.mail.polis.sanekyy.internalServices.ITopologyManager;
 import ru.mail.polis.sanekyy.internalServices.TopologyManager;
+import ru.mail.polis.sanekyy.utils.StringUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -72,6 +72,7 @@ public class MyService implements KVService {
     @Override
     public void start() {
         this.server.start();
+        // polling all nodes to get missed requests/calls
         broadcastManager.checkMissedCalls(addr);
     }
 
