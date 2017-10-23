@@ -21,13 +21,23 @@ public class TopologyManager implements ITopologyManager {
     @Override
     public Set<String> getAddrsForId(@NotNull final String id, final int nodesCount) {
         Set<String> result = new HashSet<>();
-        int startNodeIndex = id.charAt(0) % topology.size();
+        int startNodeIndex = getStartNodeIndex(id);
 
         for (int i = 0; i < nodesCount; i++) {
             result.add(topology.get((startNodeIndex + i) % topology.size()));
         }
 
         return result;
+    }
+
+    private int getStartNodeIndex(@NotNull final String id){
+        int sum = 0;
+
+        for(int i = 0; i < id.length(); i++){
+            sum += id.charAt(i);
+        }
+
+        return sum % topology.size();
     }
 
     @Override

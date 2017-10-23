@@ -86,9 +86,9 @@ public class MyService implements KVService {
             final int port,
             Set<String> topology) throws IllegalArgumentException {
         for (String addr : topology) {
-            String[] args = addr.split("[:/]");
+            String currPort = addr.substring(addr.lastIndexOf(":") + 1);
 
-            if (args[4].equals(String.valueOf(port))) {
+            if (currPort.equals(String.valueOf(port))) {
                 return addr;
             }
         }
