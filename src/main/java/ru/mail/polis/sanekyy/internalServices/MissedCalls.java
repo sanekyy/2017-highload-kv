@@ -13,8 +13,8 @@ import java.util.*;
 
 
 /**
- * Storage of missed call wich don't delivered to some node, because it had downtime or some different problem.
- * When node will rise, it will send request to all other nodes, and check do they have missed call for it.
+ * Storage of missed calls which weren't delivered to certain node, because it had downtime or some different problem.
+ * When node will rise, it will send request to all other nodes, and check if they have missed call to it.
  */
 public class MissedCalls {
 
