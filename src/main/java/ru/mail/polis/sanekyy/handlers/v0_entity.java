@@ -69,7 +69,7 @@ public class v0_entity extends BaseHandler {
 
         List<byte[]> values = new CopyOnWriteArrayList<>();
 
-        Set<String> addrsToGet = service.getTopologyManager().getAddrsForId(id, from);
+        Set<String> addrsToGet = service.getTopologyManager().getAddrsForId(id, service.getTopologyManager().getNodesCount());
 
         if (addrsToGet.remove(service.getAddr())) {
             try {
@@ -310,7 +310,7 @@ public class v0_entity extends BaseHandler {
                         System.out.println(String.valueOf(call.request().url()) + " wtf?");
                 }
 
-                if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
+                if (goodAnswer.get() + errorAnswer.get() == from) {
                     if (goodAnswer.get() >= ack) {
                         sendResponse(httpExchange, Code.CREATED, Body.CREATED);
                     } else {
@@ -326,7 +326,7 @@ public class v0_entity extends BaseHandler {
 
                 if (goodAnswer.get() >= ack) {
                     sendResponse(httpExchange, Code.CREATED, Body.CREATED);
-                } else if (goodAnswer.get() + errorAnswer.get() == service.getTopologyManager().getNodesCount()) {
+                } else if (goodAnswer.get() + errorAnswer.get() == from) {
                     sendResponse(httpExchange, Code.NOT_ENOUGH_REPLICAS, Body.NOT_ENOUGH_REPLICAS);
                 }
             }
