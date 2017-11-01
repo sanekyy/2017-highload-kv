@@ -31,7 +31,7 @@ public class StartStopTest extends TestBase {
     public final Timeout globalTimeout = Timeout.millis(TIMEOUT_MS * 2);
 
     @BeforeClass
-    public static void beforeAll() throws IOException {
+    public static void beforeAll() throws Exception {
         port = randomPort();
         data = Files.createTempDirectory();
         endpoints = Collections.singleton(endpoint(port));
@@ -75,6 +75,7 @@ public class StartStopTest extends TestBase {
         try {
             // Should not respond after stop
             status();
+            assertEquals(false, true);
         } catch (SocketTimeoutException | HttpHostConnectException e) {
             // Do nothing
         }

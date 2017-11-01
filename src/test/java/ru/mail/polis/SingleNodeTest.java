@@ -29,7 +29,7 @@ public class SingleNodeTest extends TestBase {
     public final Timeout globalTimeout = Timeout.seconds(3);
 
     @BeforeClass
-    public static void beforeAll() throws IOException, InterruptedException {
+    public static void beforeAll() throws Exception {
         final int port = randomPort();
         data = Files.createTempDirectory();
         endpoint = endpoint(port);

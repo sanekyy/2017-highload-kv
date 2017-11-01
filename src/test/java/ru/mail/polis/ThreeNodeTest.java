@@ -35,7 +35,7 @@ public class ThreeNodeTest extends ClusterTestBase {
     private KVService storage2;
 
     @Before
-    public void beforeEach() throws IOException, InterruptedException {
+    public void beforeEach() throws Exception {
         port0 = randomPort();
         port1 = randomPort();
         port2 = randomPort();

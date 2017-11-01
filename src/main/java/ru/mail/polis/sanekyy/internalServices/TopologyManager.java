@@ -3,41 +3,40 @@ package ru.mail.polis.sanekyy.internalServices;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+
 
 public class TopologyManager implements ITopologyManager {
 
     @NotNull
     private final List<String> topology;
 
-    public TopologyManager(@NotNull final Set<String> topology) {
+    public TopologyManager(@NotNull final Collection<String> topology) {
         this.topology = new ArrayList<>(topology);
         this.topology.sort(String::compareTo);
     }
 
     @NotNull
     @Override
-    public Set<String> getAddrsForId(@NotNull final String id, final int nodesCount) {
-        Set<String> result = new HashSet<>();
-        int startNodeIndex = getStartNodeIndex(id);
+    public List<String> getAddrsForId(@NotNull final String id) {
+        List<String> result = new ArrayList<>();
 
-        for (int i = 0; i < nodesCount; i++) {
-            result.add(topology.get((startNodeIndex + i) % topology.size()));
+        for (int i = 0; i < topology.size(); i++) {
+            result.add(topology.get((getNodeIndexForIdAndOffset(id, i))));
         }
 
         return result;
     }
 
-    private int getStartNodeIndex(@NotNull final String id){
+    private int getNodeIndexForIdAndOffset(@NotNull final String id, int offset) {
         int sum = 0;
 
-        for(int i = 0; i < id.length(); i++){
+        for (int i = 0; i < id.length(); i++) {
             sum += id.charAt(i);
         }
 
-        return sum % topology.size();
+        return ((sum % topology.size()) + offset) % topology.size();
     }
 
     @Override

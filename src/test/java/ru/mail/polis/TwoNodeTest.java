@@ -32,7 +32,7 @@ public class TwoNodeTest extends ClusterTestBase {
     private KVService storage1;
 
     @Before
-    public void beforeEach() throws IOException, InterruptedException {
+    public void beforeEach() throws Exception {
         port0 = randomPort();
         port1 = randomPort();
         endpoints = new LinkedHashSet<>(Arrays.asList(endpoint(port0), endpoint(port1)));

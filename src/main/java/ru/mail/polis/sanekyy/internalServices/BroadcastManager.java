@@ -10,7 +10,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import ru.mail.polis.sanekyy.MyService.Mode;
-import ru.mail.polis.sanekyy.utils.Config;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,18 +37,20 @@ public class BroadcastManager {
     }
 
     public void getEntity(
-            @NotNull final Set<String> addrs,
+            @NotNull final Mode mode,
+            @NotNull final Iterable<String> addrs,
             @NotNull final String id,
-            @NotNull final Callback<ResponseBody> callBack) {
+            @NotNull final Callback<ResponseBody> callback) {
         for (String addr : addrs) {
             NodeService service = nodeServices.get(addr);
             Call<ResponseBody> call = service.getEntity(id);
-            executeCall(call, callBack);
+            executeCall(call, callback, mode);
         }
     }
 
     public void deleteEntity(
-            @NotNull final Set<String> addrs,
+            @NotNull final Mode mode,
+            @NotNull final Iterable<String> addrs,
             @NotNull final String id,
             @NotNull final Callback<ResponseBody> callback) {
         for (String addr : addrs) {
@@ -67,12 +68,13 @@ public class BroadcastManager {
                     callback.onFailure(call, t);
                 }
             };
-            executeCall(call, wrappedCallback);
+            executeCall(call, wrappedCallback, mode);
         }
     }
 
     public void putEntity(
-            @NotNull final Set<String> addrs,
+            @NotNull final Mode mode,
+            @NotNull final Iterable<String> addrs,
             @NotNull final String id,
             @NotNull final byte[] body,
             @NotNull final Callback<ResponseBody> callback) {
@@ -93,7 +95,7 @@ public class BroadcastManager {
                     callback.onFailure(call, t);
                 }
             };
-            executeCall(call, wrappedCallback);
+            executeCall(call, wrappedCallback, mode);
         }
     }
 
@@ -105,30 +107,30 @@ public class BroadcastManager {
 
             @Override
             public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                //t.printStackTrace();
             }
         };
 
         nodeServices.values().forEach(service -> {
             Call<ResponseBody> call = service.checkMissedCall(addr);
-            executeCall(call, callBack);
+            executeCall(call, callBack, Mode.sync);
         });
     }
 
     private void executeCall(
             @NotNull final Call<ResponseBody> call,
-            @NotNull final Callback<ResponseBody> callback) {
-        if (Config.mode == Mode.sync) {
+            @NotNull final Callback<ResponseBody> callback, Mode mode) {
+        if (mode == Mode.sync) {
             try {
                 Response<ResponseBody> response = call.execute();
                 callback.onResponse(call, response);
             } catch (IOException e) {
                 callback.onFailure(call, e);
             }
-        } else if (Config.mode == Mode.async) {
+        } else if (mode == Mode.async) {
             call.enqueue(callback);
         } else {
             System.out.println("Unknown mode");
         }
     }
+
 }

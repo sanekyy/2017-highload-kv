@@ -5,8 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import ru.mail.polis.sanekyy.MyService.Mode;
-import ru.mail.polis.sanekyy.utils.Config;
 
 import java.io.IOException;
 import java.util.*;
@@ -42,17 +40,10 @@ public class MissedCalls {
 
             @Override
             public void onFailure(@NotNull Call<ResponseBody> call, @NotNull Throwable t) {
-                //t.printStackTrace();
             }
         };
 
-        if (Config.mode == Mode.sync) {
-            missedCalls.get(addr).forEach(call -> executeSyncCall(call, callBack));
-        } else if (Config.mode == Mode.async) {
-            missedCalls.get(addr).forEach(call -> call.enqueue(callBack));
-        } else {
-            System.out.println("Unknown mode");
-        }
+        missedCalls.get(addr).forEach(call -> executeSyncCall(call, callBack));
     }
 
     private void executeSyncCall(

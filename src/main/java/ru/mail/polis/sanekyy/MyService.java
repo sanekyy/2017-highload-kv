@@ -37,16 +37,13 @@ public class MyService implements KVService {
             @NotNull final MyDAO dao,
             @NotNull final Set<String> topology) throws IOException {
 
-
         this.dao = dao;
         addr = getAddrFromTopologyForPort(port, topology);
-
         topologyManager = new TopologyManager(topology);
 
-
-        Set<String> myTopology = new HashSet<>(topology);
-        myTopology.remove(addr);
-        broadcastManager = new BroadcastManager(myTopology);
+        Set<String> neighborsAdds = new HashSet<>(topology);
+        neighborsAdds.remove(addr);
+        broadcastManager = new BroadcastManager(neighborsAdds);
 
         this.server = HttpServer.create(
                 new InetSocketAddress(StringUtils.getHostnameFromAddr(addr), port),

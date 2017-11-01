@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -15,8 +18,28 @@ import java.util.concurrent.ThreadLocalRandom;
 abstract class TestBase {
     private static final int VALUE_LENGTH = 1024;
 
-    static int randomPort() {
-        return ThreadLocalRandom.current().nextInt(30000, 40000);
+    private static Set<Integer> ports;
+
+    static int randomPort() throws Exception {
+        if(ports == null){
+            ports = new HashSet<>();
+            for(int i = 10000; i < 60000; i++){
+                ports.add(i);
+            }
+        }
+
+        for (int port : ports) {
+            try {
+                ServerSocket serverSocket = new ServerSocket(port);
+                serverSocket.close();
+                ports.remove(port);
+                return port;
+            } catch (IOException ignored) {
+                ports.remove(port);
+            }
+        }
+
+        throw new Exception("Can't allocate port");
     }
 
     @NotNull

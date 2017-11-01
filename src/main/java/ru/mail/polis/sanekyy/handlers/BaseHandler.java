@@ -28,28 +28,23 @@ public class BaseHandler implements HttpHandler {
             handler.handle(httpExchange);
         } catch (NoSuchElementException e) {
             sendResponse(httpExchange, Code.NOT_FOUND, Body.NOT_FOUND);
-            //e.printStackTrace();
             httpExchange.close();
         } catch (IllegalArgumentException e) {
             sendResponse(httpExchange, Code.BAD_REQUEST, Body.BAD_REQUEST);
-            //e.printStackTrace();
             httpExchange.close();
         } catch (Exception e) {
-            //e.printStackTrace();
             httpExchange.close();
         }
     }
 
-    void sendResponse(
+    synchronized void sendResponse(
             @NotNull final HttpExchange httpExchange,
             final int code,
             @NotNull final byte[] body) {
-
         try {
             httpExchange.sendResponseHeaders(code, body.length);
             httpExchange.getResponseBody().write(body);
-        } catch (IOException e) {
-            //e.printStackTrace();
+        } catch (IOException ignored) {
         } finally {
             httpExchange.close();
         }
@@ -146,8 +141,8 @@ public class BaseHandler implements HttpHandler {
         throw new IllegalArgumentException();
     }
 
-    static class Code {
-        static final int OK = 200;
+    public static class Code {
+        public static final int OK = 200;
         static final int CREATED = 201;
         static final int ACCEPTED = 202;
         static final int BAD_REQUEST = 400;

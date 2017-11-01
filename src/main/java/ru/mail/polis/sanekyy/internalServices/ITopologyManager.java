@@ -2,11 +2,11 @@ package ru.mail.polis.sanekyy.internalServices;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
+import java.util.List;
 
 public interface ITopologyManager {
     @NotNull
-    Set<String> getAddrsForId(@NotNull final String id, final int nodesCount);
+    List<String> getAddrsForId(@NotNull final String id);
 
     int getNodesCount();
 
