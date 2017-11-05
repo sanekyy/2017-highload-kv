@@ -11,6 +11,7 @@ import ru.mail.polis.sanekyy.MyService;
 import ru.mail.polis.sanekyy.MyService.Mode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -70,7 +71,7 @@ public class v0_entity extends BaseHandler {
         List<byte[]> values = new CopyOnWriteArrayList<>();
 
         List<String> allAddrsToGet = service.getTopologyManager().getAddrsForId(id);
-        List<String> actualAddrsToGet = allAddrsToGet.subList(0, from);
+        List<String> actualAddrsToGet = new ArrayList<>(allAddrsToGet.subList(0, from));
 
 
         if (actualAddrsToGet.remove(service.getAddr())) {
@@ -192,7 +193,7 @@ public class v0_entity extends BaseHandler {
                 errorAnswer = new AtomicInteger(0);
 
         List<String> allAddrsToRemove = service.getTopologyManager().getAddrsForId(id);
-        List<String> actualAddrsToRemove = allAddrsToRemove.subList(0, from);
+        List<String> actualAddrsToRemove = new ArrayList<>(allAddrsToRemove.subList(0, from));
 
         if (actualAddrsToRemove.remove(service.getAddr())) {
             service.getDao().delete(id);
@@ -271,7 +272,7 @@ public class v0_entity extends BaseHandler {
                 errorAnswer = new AtomicInteger(0);
 
         List<String> allAddrsToPut = service.getTopologyManager().getAddrsForId(id);
-        List<String> actualAddrsToPut = allAddrsToPut.subList(0, from);
+        List<String> actualAddrsToPut = new ArrayList<>(allAddrsToPut.subList(0, from));
 
         if (actualAddrsToPut.remove(service.getAddr())) {
             try {
