@@ -1,0 +1,478 @@
+PUT без перезаписи, 2/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s put11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    69.33ms   11.57ms 274.52ms   93.45%
+    Req/Sec    14.50      5.00    20.00     54.61%
+  Latency Distribution
+     50%   67.05ms
+     75%   70.26ms
+     90%   76.49ms
+     99%  107.68ms
+  868 requests in 1.00m, 73.82KB read
+Requests/sec:     14.45
+Transfer/sec:      1.23KB
+==========================================
+
+PUT без перезаписи, 3/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s put12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    69.33ms    7.49ms 158.40ms   87.88%
+    Req/Sec    14.45      5.00    20.00     54.77%
+  Latency Distribution
+     50%   67.71ms
+     75%   71.24ms
+     90%   77.48ms
+     99%   98.99ms
+  865 requests in 1.00m, 73.57KB read
+Requests/sec:     14.41
+==========================================
+
+
+PUT c перезаписью, 2/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s put21.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    68.09ms    6.41ms 123.88ms   87.73%
+    Req/Sec    14.68      5.01    20.00     52.92%
+  Latency Distribution
+     50%   66.67ms
+     75%   69.15ms
+     90%   75.53ms
+     99%   93.69ms
+  880 requests in 1.00m, 74.84KB read
+Requests/sec:     14.65
+Transfer/sec:      1.25KB
+==========================================
+
+
+PUT c перезаписью, 3/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s put22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    72.06ms   14.44ms 191.35ms   93.40%
+    Req/Sec    14.09      5.07    20.00     56.12%
+  Latency Distribution
+     50%   68.12ms
+     75%   72.96ms
+     90%   80.59ms
+     99%  159.79ms
+  835 requests in 1.00m, 71.02KB read
+Requests/sec:     13.90
+Transfer/sec:      1.18KB
+==========================================
+
+
+PUT без перезаписи, 2/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s put11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    84.34ms   23.99ms 308.57ms   84.66%
+    Req/Sec    12.23      4.58    20.00     70.53%
+  Latency Distribution
+     50%   72.04ms
+     75%  104.03ms
+     90%  111.76ms
+     99%  160.82ms
+  1427 requests in 1.00m, 121.40KB read
+Requests/sec:     23.76
+Transfer/sec:      2.02KB
+==========================================
+
+
+PUT без перезаписи, 3/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s put12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    92.08ms   21.64ms 344.06ms   63.99%
+    Req/Sec    11.13      3.66    20.00     82.33%
+  Latency Distribution
+     50%  103.71ms
+     75%  107.11ms
+     90%  110.43ms
+     99%  121.44ms
+  1305 requests in 1.00m, 110.95KB read
+Requests/sec:     21.73
+Transfer/sec:      1.85KB
+==========================================
+
+
+PUT с перезаписью, 2/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s put21.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    79.98ms   18.24ms 134.50ms   69.91%
+    Req/Sec    12.68      4.63    20.00     69.73%
+  Latency Distribution
+     50%   69.18ms
+     75%  103.23ms
+     90%  106.56ms
+     99%  120.52ms
+  1499 requests in 1.00m, 127.43KB read
+Requests/sec:     24.96
+Transfer/sec:      2.12KB
+==========================================
+
+
+PUT с перезаписью, 3/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s put22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    93.99ms   22.61ms 306.25ms   65.10%
+    Req/Sec    11.00      3.73    20.00     80.41%
+  Latency Distribution
+     50%  103.71ms
+     75%  107.87ms
+     90%  111.58ms
+     99%  162.45ms
+  1276 requests in 1.00m, 108.57KB read
+Requests/sec:     21.25
+Transfer/sec:      1.81KB
+==========================================
+
+
+PUT без перезаписи, 2/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s put11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    97.95ms   28.84ms 351.07ms   73.31%
+    Req/Sec    10.67      3.37    20.00     83.66%
+  Latency Distribution
+     50%  103.79ms
+     75%  106.13ms
+     90%  114.82ms
+     99%  206.69ms
+  2467 requests in 1.00m, 209.75KB read
+Requests/sec:     41.08
+Transfer/sec:      3.49KB
+==========================================
+
+
+PUT без перезаписи, 3/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s put12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    93.93ms   28.51ms 313.80ms   72.75%
+    Req/Sec    11.04      3.59    20.00     83.02%
+  Latency Distribution
+     50%   99.72ms
+     75%  103.93ms
+     90%  112.25ms
+     99%  212.14ms
+  2575 requests in 1.00m, 219.09KB read
+Requests/sec:     42.87
+Transfer/sec:      3.65KB
+==========================================
+
+
+PUT c перезаписью, 2/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s put21.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    91.93ms   26.33ms 339.34ms   66.98%
+    Req/Sec    11.22      3.83    20.00     80.04%
+  Latency Distribution
+     50%   97.47ms
+     75%  104.57ms
+     90%  119.24ms
+     99%  170.84ms
+  2616 requests in 1.00m, 222.41KB read
+Requests/sec:     43.56
+Transfer/sec:      3.70KB
+==========================================
+
+
+PUT c перезаписью, 3/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s put22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    94.13ms   22.70ms 341.15ms   71.52%
+    Req/Sec    10.86      3.27    20.00     85.91%
+  Latency Distribution
+     50%  100.14ms
+     75%  104.38ms
+     90%  111.07ms
+     99%  144.95ms
+  2555 requests in 1.00m, 217.23KB read
+Requests/sec:     42.54
+Transfer/sec:      3.62KB
+==========================================
+
+
+GET без повторов, 2/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s get11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    66.67ms   15.99ms 213.81ms   93.74%
+    Req/Sec    15.30      5.14    20.00     54.00%
+  Latency Distribution
+     50%   62.66ms
+     75%   66.14ms
+     90%   74.25ms
+     99%  153.34ms
+  906 requests in 1.00m, 68.98KB read
+Requests/sec:     15.09
+Transfer/sec:      1.15KB
+==========================================
+
+
+GET без повторов, 3/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s get12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    66.36ms   13.42ms 168.10ms   93.06%
+    Req/Sec    15.25      5.10    20.00     53.21%
+  Latency Distribution
+     50%   63.18ms
+     75%   66.42ms
+     90%   73.18ms
+     99%  145.79ms
+  907 requests in 1.00m, 69.06KB read
+Requests/sec:     15.11
+Transfer/sec:      1.15KB
+==========================================
+
+
+GET c повторами, 2/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s get21.lua http://sergey.medvedev.space:9860 
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    63.73ms   12.03ms 299.55ms   95.08%
+    Req/Sec    15.77      4.99    20.00     57.98%
+  Latency Distribution
+     50%   62.51ms
+     75%   64.73ms
+     90%   68.01ms
+     99%   97.55ms
+  892 requests in 1.00m, 67.91KB read
+  Socket errors: connect 0, read 0, write 0, timeout 1
+Requests/sec:     14.85
+Transfer/sec:      1.13KB
+==========================================
+
+
+GET c повторами, 3/3, 1 клиент, 1 тред
+
+wrk --latency -c1 -t1 -d1m -s get22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  1 threads and 1 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    67.12ms   20.95ms 301.85ms   95.18%
+    Req/Sec    15.41      5.15    20.00     55.12%
+  Latency Distribution
+     50%   62.53ms
+     75%   65.51ms
+     90%   73.58ms
+     99%  167.91ms
+  910 requests in 1.00m, 69.28KB read
+Requests/sec:     15.15
+Transfer/sec:      1.15KB
+==========================================
+
+
+GET без повторов, 2/3, 2 клиент, 2 тред
+wrk --latency -c2 -t2 -d1m -s get11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    93.99ms   17.72ms 275.91ms   78.34%
+    Req/Sec    10.74      2.87    20.00     89.88%
+  Latency Distribution
+     50%   99.66ms
+     75%  101.45ms
+     90%  104.98ms
+     99%  124.37ms
+  1277 requests in 1.00m, 97.13KB read
+Requests/sec:     21.27
+Transfer/sec:      1.62KB
+==========================================
+
+
+GET без повторов, 3/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s get12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   100.31ms   19.04ms 312.68ms   88.32%
+    Req/Sec    10.17      2.02    20.00     93.67%
+  Latency Distribution
+     50%  100.35ms
+     75%  103.07ms
+     90%  106.93ms
+     99%  164.61ms
+  1200 requests in 1.00m, 91.27KB read
+Requests/sec:     19.98
+Transfer/sec:      1.52KB
+==========================================
+
+
+GET с повторами, 2/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s get21.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    99.52ms   25.91ms 323.14ms   83.87%
+    Req/Sec    10.38      2.65    20.00     90.17%
+  Latency Distribution
+     50%  100.06ms
+     75%  102.52ms
+     90%  107.25ms
+     99%  208.88ms
+  1215 requests in 1.00m, 92.48KB read
+Requests/sec:     20.23
+Transfer/sec:      1.54KB
+==========================================
+
+
+GET с повторами, 3/3, 2 клиент, 2 тред
+
+wrk --latency -c2 -t2 -d1m -s get22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  2 threads and 2 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    95.65ms   16.76ms 273.70ms   78.57%
+    Req/Sec    10.54      2.54    20.00     91.99%
+  Latency Distribution
+     50%  100.15ms
+     75%  102.55ms
+     90%  106.51ms
+     99%  127.89ms
+  1254 requests in 1.00m, 95.38KB read
+Requests/sec:     20.88
+Transfer/sec:      1.59KB
+==========================================
+
+
+GET без повторов, 2/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s get11.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   103.11ms   32.44ms 332.11ms   77.84%
+    Req/Sec    10.22      2.91    20.00     85.96%
+  Latency Distribution
+     50%  101.10ms
+     75%  106.55ms
+     90%  126.93ms
+     99%  242.20ms
+  2348 requests in 1.00m, 178.72KB read
+Requests/sec:     39.10
+Transfer/sec:      2.98KB
+==========================================
+
+
+GET без повторов, 3/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s get12.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   100.98ms   20.27ms 318.03ms   84.67%
+    Req/Sec    10.15      2.18    20.00     92.23%
+  Latency Distribution
+     50%  102.22ms
+     75%  105.89ms
+     90%  113.54ms
+     99%  155.10ms
+  2381 requests in 1.00m, 181.16KB read
+Requests/sec:     39.65
+Transfer/sec:      3.02KB
+==========================================
+
+
+GET c повторами, 2/3, 4 клиент, 4 тред
+
+wrk --latency -c4 -t4 -d1m -s get21.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   106.74ms   42.42ms 476.37ms   81.27%
+    Req/Sec    10.18      3.16    20.00     83.40%
+  Latency Distribution
+     50%  101.96ms
+     75%  108.85ms
+     90%  134.22ms
+     99%  300.35ms
+  2298 requests in 1.00m, 174.76KB read
+Requests/sec:     38.26
+Transfer/sec:      2.91KB
+==========================================
+
+
+GET c повторами, 3/3, 4 клиент, 4 тред
+wrk --latency -c4 -t4 -d1m -s get22.lua http://sergey.medvedev.space:9860
+Running 1m test @ http://sergey.medvedev.space:9860
+  4 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   101.80ms   34.74ms 443.16ms   82.22%
+    Req/Sec    10.38      2.93    20.00     87.30%
+  Latency Distribution
+     50%  101.79ms
+     75%  104.69ms
+     90%  113.79ms
+     99%  300.85ms
+  2397 requests in 1.00m, 182.30KB read
+Requests/sec:     39.91
+Transfer/sec:      3.04KB
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
